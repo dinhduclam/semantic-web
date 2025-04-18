@@ -2,5 +2,7 @@ rdflib==7.0.0
 requests
 beautifulsoup4
 openai
-SPARQLWrapper
-python-dotenv
+SPARQLWrapper~=2.0.0
+python-dotenv~=1.1.0
+google-genai
+google~=3.0.0
