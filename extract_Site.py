@@ -9,7 +9,21 @@ from utils import uri_exists
 
 
 def add_site_to_ontology(uri: str, g: Graph):
-    results = query_site_from_dbpedia(uri)["results"]["bindings"]
+    if uri_exists(g, uri):
+        print(f"{uri} exists!")
+        print("---------------")
+        return uri
+
+    try:
+        results = query_site_from_dbpedia(uri)["results"]["bindings"]
+    except:
+        print(f"An exception occurred for uri {uri}")
+        return uri
+
+    if results is None or len(results) == 0:
+        print(f"No data from DBpedia found for {uri}")
+        return uri
+
     name = results[0]["label"]["value"]
     site_uri = URIRef(base + name.replace(" ", "_"))
 
@@ -46,17 +60,17 @@ def add_site_to_ontology(uri: str, g: Graph):
         if "level" in res:
             g.add((site_uri, base.siteLevel, Literal(res["level"]["value"])))
 
-    # if not any(g.triples((site_uri, base.hasFestival, None))):
-    #     festival_list = get_festival_list_from_site(name)
-    #     for festival in festival_list:
-    #         festival_uri = add_festival_to_ontology(festival["link"], g)
-    #         g.add((site_uri, base.hasFestival, URIRef(festival_uri)))
-    #
-    # if not any(g.triples((site_uri, base.hasEvent, None))):
-    #     event_list = get_historic_event_list_from_site(name)
-    #     for event in event_list:
-    #         event_uri = add_event_to_ontology(event["link"], g)
-    #         g.add((site_uri, base.siteCommemorateEvent, URIRef(event_uri)))
+    if not any(g.triples((site_uri, base.hasFestival, None))):
+        festival_list = get_festival_list_from_site(name)
+        for festival in festival_list:
+            festival_uri = add_festival_to_ontology(festival["link"], g)
+            g.add((site_uri, base.hasFestival, URIRef(festival_uri)))
+
+    if not any(g.triples((site_uri, base.hasEvent, None))):
+        event_list = get_historic_event_list_from_site(name)
+        for event in event_list:
+            event_uri = add_event_to_ontology(event["link"], g)
+            g.add((site_uri, base.siteCommemorateEvent, URIRef(event_uri)))
 
     for s, p, o in g.triples((site_uri, base.builtBy, None)):
         if isinstance(o, URIRef):

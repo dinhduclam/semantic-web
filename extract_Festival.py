@@ -3,8 +3,23 @@ from rdflib import Graph, URIRef, Literal
 from chevie_namespace import rdf, rdfs, owl, base
 from utils import uri_exists
 
+
 def add_festival_to_ontology(uri: str, g: Graph):
-    results = query_festival_from_dbpedia(uri)["results"]["bindings"]
+    if uri_exists(g, uri):
+        print(f"{uri} exists!")
+        print("---------------")
+        return uri
+
+    try:
+        results = query_festival_from_dbpedia(uri)["results"]["bindings"]
+    except:
+        print(f"An exception occurred for uri {uri}")
+        return uri
+
+    if results is None or len(results) == 0:
+        print(f"No data from DBpedia found for {uri}")
+        return uri
+
     name = results[0]["label"]["value"]
     festival_uri = URIRef(base + name.replace(" ", "_"))
 

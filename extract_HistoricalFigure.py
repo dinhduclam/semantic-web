@@ -7,7 +7,20 @@ from extract_AdministrativeDivision import add_ad_to_ontology
 
 
 def add_historical_figure_to_ontology(uri: str, g: Graph):
-    results = query_historical_figure_from_dbpedia(uri)["results"]["bindings"]
+    if uri_exists(g, uri):
+        print(f"{uri} exists!")
+        print("---------------")
+        return uri
+
+    try:
+        results = query_historical_figure_from_dbpedia(uri)["results"]["bindings"]
+    except:
+        print(f"An exception occurred for uri {uri}")
+        return uri
+
+    if results is None or len(results) == 0:
+        print(f"No data from DBpedia found for {uri}")
+        return uri
     name = results[0]["label"]["value"]
     figure_uri = URIRef(base + name.replace(" ", "_"))
 
@@ -73,6 +86,11 @@ def add_historical_figure_to_ontology(uri: str, g: Graph):
     for predicate, obj in g.predicate_objects(subject=figure_uri):
         print(f"Historical Figure: {predicate} -> {obj}")
     print("---------------")
+
+    for s, p, o in g.triples((figure_uri, dbo.father, None)):
+        if isinstance(o, URIRef):
+            farther_uri = add_historical_figure_to_ontology(o, g)
+            g.add((figure_uri, dbo.father, farther_uri))
 
     for s, p, o in g.triples((figure_uri, base.birthPlace, None)):
         if isinstance(o, URIRef):

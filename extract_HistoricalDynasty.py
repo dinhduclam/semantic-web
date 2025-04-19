@@ -7,7 +7,21 @@ import extract_HistoricalFigure
 
 
 def add_dynastic_to_ontology(uri: str, g: Graph):
-    results = query_dynasty_from_dbpedia(uri)["results"]["bindings"]
+    if uri_exists(g, uri):
+        print(f"{uri} exists!")
+        print("---------------")
+        return uri
+
+    try:
+        results = query_dynasty_from_dbpedia(uri)["results"]["bindings"]
+    except:
+        print(f"An exception occurred for uri {uri}")
+        return uri
+
+    if results is None or len(results) == 0:
+        print(f"No data from DBpedia found for {uri}")
+        return uri
+
     name = results[0]["label"]["value"]
     slug = name.replace(" ", "_")
     dynasty_uri = URIRef(base + slug)
